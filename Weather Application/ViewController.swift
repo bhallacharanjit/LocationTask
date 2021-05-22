@@ -39,9 +39,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, NetworkingDel
     }
     
     @IBAction func searchAction(_ sender: Any) {
-        let vc = UIStoryboard.init(name: "Main", bundle: Bundle.main).instantiateViewController(withIdentifier: "SearchViewController") as? SearchViewController
-        vc?.parentController = self
-        self.navigationController?.pushViewController(vc!, animated: true)
+        let isLocation = isLocationAccessEnabled()
+        if isLocation {
+            let vc = UIStoryboard.init(name: "Main", bundle: Bundle.main).instantiateViewController(withIdentifier: "SearchViewController") as? SearchViewController
+            vc?.parentController = self
+            self.navigationController?.pushViewController(vc!, animated: true)
+            
+        }
+        
     }
     
     //getting user location
@@ -56,22 +61,25 @@ class ViewController: UIViewController, CLLocationManagerDelegate, NetworkingDel
         
     }
     
-    func isLocationAccessEnabled() {
-       if CLLocationManager.locationServicesEnabled() {
-          switch locationManager.authorizationStatus {
-             case .restricted, .denied:
+    func isLocationAccessEnabled() -> Bool {
+        if CLLocationManager.locationServicesEnabled() {
+            switch locationManager.authorizationStatus {
+            case .restricted, .denied:
                 print("No access")
                 showLocationPopup()
-                break;
-          case .notDetermined: break
-             case .authorizedAlways, .authorizedWhenInUse:
+                return false
+            case .notDetermined: break
+            case .authorizedAlways, .authorizedWhenInUse:
                 print("Access")
-          @unknown default:
-            print("err")
-          }
-       } else {
-          print("Location services not enabled")
-       }
+                return true
+            @unknown default:
+                print("err")
+            }
+        } else {
+            print("Location services not enabled")
+        }
+        
+        return false
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
@@ -90,10 +98,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, NetworkingDel
     }
     
     public func locationManager(_ manager: CLLocationManager,
-                                    didChangeAuthorization status: CLAuthorizationStatus) {
-//            self.requestLocationAuthorizationCallback?(status)
+                                didChangeAuthorization status: CLAuthorizationStatus) {
+        //            self.requestLocationAuthorizationCallback?(status)
         isLocationAccessEnabled()
-        }
+    }
     
     func showLocationPopup() {
         let alertController = UIAlertController(title: "Location Permission Required", message: "Please enable location permissions in settings.", preferredStyle: UIAlertController.Style.alert)
